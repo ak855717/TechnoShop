@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
+import { apiFetch } from "../config/api";
 
 const loadRazorpayScript = () => new Promise((resolve) => {
   if (window.Razorpay) {
@@ -17,7 +18,6 @@ const loadRazorpayScript = () => new Promise((resolve) => {
 
 export default function Checkout() {
   const { cart, cartTotal, user, clearCart, products } = useShop();
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://technoshop-backend-m2ps.onrender.com/api";
   const [selectedAddressIndex, setSelectedAddressIndex] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState("Razorpay");
   const [isProcessing, setIsProcessing] = useState(false);
@@ -77,10 +77,8 @@ export default function Checkout() {
   );
 
   const placeCodOrder = async () => {
-    const response = await fetch(`${API_BASE_URL}/orders`, {
+    const response = await apiFetch("/orders", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({
         shippingAddress,
         paymentMethod: "COD",
@@ -104,10 +102,8 @@ export default function Checkout() {
       throw new Error("Razorpay checkout failed to load. Please check your internet connection.");
     }
 
-    const orderResponse = await fetch(`${API_BASE_URL}/orders/razorpay/create-order`, {
+    const orderResponse = await apiFetch("/orders/razorpay/create-order", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({
         shippingAddress,
         paymentMethod: "Razorpay",
@@ -141,10 +137,8 @@ export default function Checkout() {
         },
         handler: async (paymentResponse) => {
           try {
-            const verifyResponse = await fetch(`${API_BASE_URL}/orders/razorpay/verify`, {
+            const verifyResponse = await apiFetch("/orders/razorpay/verify", {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              credentials: "include",
               body: JSON.stringify({
                 ...paymentResponse,
                 shippingAddress,

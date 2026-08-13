@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useShop } from "../context/ShopContext";
+import { apiFetch } from "../config/api";
 
 export default function AdminProducts() {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://technoshop-backend-m2ps.onrender.com/api";
   const { user } = useShop();
   const navigate = useNavigate();
   const [products, setProducts] = useState([]);
@@ -30,7 +30,7 @@ export default function AdminProducts() {
   const loadProducts = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/products`);
+      const res = await apiFetch("/products");
       const data = await res.json();
       if (!res.ok) {
         throw new Error(data.message || "Could not load products");
@@ -87,13 +87,11 @@ export default function AdminProducts() {
 
     try {
       setLoading(true);
-      const endpoint = editingId ? `${API_BASE_URL}/products/${editingId}` : `${API_BASE_URL}/products`;
+      const endpoint = editingId ? `/products/${editingId}` : "/products";
       const method = editingId ? "PUT" : "POST";
 
-      const res = await fetch(endpoint, {
+      const res = await apiFetch(endpoint, {
         method,
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
         body: JSON.stringify({
           ...form,
           price: Number(form.price),
@@ -138,9 +136,8 @@ export default function AdminProducts() {
   const handleDelete = async (productId) => {
     try {
       setLoading(true);
-      const res = await fetch(`${API_BASE_URL}/products/${productId}`, {
+      const res = await apiFetch(`/products/${productId}`, {
         method: "DELETE",
-        credentials: "include",
       });
 
       if (!res.ok) {

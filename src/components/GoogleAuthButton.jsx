@@ -8,12 +8,16 @@ const loadGoogleScript = () =>
     }
 
     const existingScript = document.querySelector(
-      'script[src="https://accounts.google.com/gsi/client"]'
+      'script[src="https://accounts.google.com/gsi/client"]',
     );
 
     if (existingScript) {
-      existingScript.addEventListener("load", () => resolve(true), { once: true });
-      existingScript.addEventListener("error", () => resolve(false), { once: true });
+      existingScript.addEventListener("load", () => resolve(true), {
+        once: true,
+      });
+      existingScript.addEventListener("error", () => resolve(false), {
+        once: true,
+      });
       return;
     }
 
@@ -34,8 +38,10 @@ export default function GoogleAuthButton({
   const buttonRef = useRef(null);
   const [isReady, setIsReady] = useState(false);
   const [loadError, setLoadError] = useState("");
-  const clientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || "").trim();
-  const currentOrigin = typeof window !== "undefined" ? window.location.origin : "";
+  const clientId =
+    "1000459950507-29do0fciio61a7ci7ctoaq5actj0t70q.apps.googleusercontent.com".trim();
+  const currentOrigin =
+    typeof window !== "undefined" ? window.location.origin : "";
 
   useEffect(() => {
     let isMounted = true;
@@ -48,7 +54,7 @@ export default function GoogleAuthButton({
       const loaded = await loadGoogleScript();
       if (!loaded || !isMounted || !window.google?.accounts?.id) {
         setLoadError(
-          `If Google shows “Access blocked”, use a Google OAuth client of type "Web application", add ${currentOrigin || "http://localhost:5173"} to Authorized JavaScript origins, and add your Gmail as a Test user in Google Cloud Console.`
+          `If Google shows “Access blocked”, use a Google OAuth client of type "Web application", add ${currentOrigin || "http://localhost:5173"} to Authorized JavaScript origins, and add your Gmail as a Test user in Google Cloud Console.`,
         );
         return;
       }
@@ -83,7 +89,11 @@ export default function GoogleAuthButton({
   }, [buttonText, clientId, currentOrigin, onCredential]);
 
   if (!clientId) {
-    return <p className="text-sm text-gray-500">Google sign-in is unavailable right now.</p>;
+    return (
+      <p className="text-sm text-gray-500">
+        Google sign-in is unavailable right now.
+      </p>
+    );
   }
 
   return (
@@ -97,11 +107,20 @@ export default function GoogleAuthButton({
           Loading Google...
         </button>
       )}
-      <div ref={buttonRef} className={isReady ? "flex justify-center" : "hidden"} />
+      <div
+        ref={buttonRef}
+        className={isReady ? "flex justify-center" : "hidden"}
+      />
       <p className="mt-2 text-center text-xs text-gray-500">
-        Google sign-in for development should allow <span className="font-medium">{currentOrigin || "http://localhost:5173"}</span> in Authorized JavaScript origins.
+        Google sign-in for development should allow{" "}
+        <span className="font-medium">
+          {currentOrigin || "http://localhost:5173"}
+        </span>{" "}
+        in Authorized JavaScript origins.
       </p>
-      {loadError && <p className="mt-2 text-center text-xs text-red-500">{loadError}</p>}
+      {loadError && (
+        <p className="mt-2 text-center text-xs text-red-500">{loadError}</p>
+      )}
     </div>
   );
 }

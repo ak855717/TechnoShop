@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
+import { API_BASE_URL, apiFetch, setAuthToken, removeAuthToken } from "../config/api";
 
 const ShopContext = createContext();
 const FALLBACK_IMAGE = "https://images.unsplash.com/photo-1593640408182-31c228b2e0bc?w=800&q=80";
@@ -122,7 +123,6 @@ const parseStoredUser = () => {
 export const useShop = () => useContext(ShopContext);
 
 export const ShopProvider = ({ children }) => {
-  const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "https://technoshop-backend-m2ps.onrender.com/api";
   const [products, setProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState("");
@@ -135,7 +135,7 @@ export const ShopProvider = ({ children }) => {
     try {
       setProductsLoading(true);
 
-      const res = await fetch(`${API_BASE_URL}/products?limit=50&sortBy=createdAt&order=desc`);
+      const res = await apiFetch("/products?limit=50&sortBy=createdAt&order=desc");
       const data = await res.json();
 
       if (!res.ok) {
@@ -154,7 +154,7 @@ export const ShopProvider = ({ children }) => {
 
   useEffect(() => {
     fetchProducts();
-  }, [API_BASE_URL]);
+  }, []);
 
   useEffect(() => {
     if (products.length === 0) {
@@ -183,9 +183,8 @@ export const ShopProvider = ({ children }) => {
 
     const fetchCurrentUser = async () => {
       try {
-        const res = await fetch(`${API_BASE_URL}/auth/me`, {
+        const res = await apiFetch("/auth/me", {
           method: "GET",
-          credentials: "include",
         });
 
         if (!isMounted) {
@@ -209,7 +208,7 @@ export const ShopProvider = ({ children }) => {
     return () => {
       isMounted = false;
     };
-  }, [API_BASE_URL]);
+  }, []);
 
   const addToCart = (product) => {
     const normalizedProduct = {
@@ -265,10 +264,8 @@ export const ShopProvider = ({ children }) => {
   };
 
   const loginUser = async (email, password) => {
-    const res = await fetch(`${API_BASE_URL}/auth/login`, {
+    const res = await apiFetch("/auth/login", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ email, password }),
     });
 
@@ -278,16 +275,18 @@ export const ShopProvider = ({ children }) => {
       throw new Error(data.message || "Login failed");
     }
 
+    if (data.token) {
+      setAuthToken(data.token);
+    }
+
     const nextUser = normalizeUser(data.user);
     setUser(nextUser);
     return nextUser;
   };
 
   const googleAuthUser = async (credential) => {
-    const res = await fetch(`${API_BASE_URL}/auth/google`, {
+    const res = await apiFetch("/auth/google", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ credential }),
     });
 
@@ -297,16 +296,18 @@ export const ShopProvider = ({ children }) => {
       throw new Error(data.message || "Google sign-in failed");
     }
 
+    if (data.token) {
+      setAuthToken(data.token);
+    }
+
     const nextUser = normalizeUser(data.user);
     setUser(nextUser);
     return nextUser;
   };
 
   const registerUser = async (name, email, password) => {
-    const res = await fetch(`${API_BASE_URL}/auth/register`, {
+    const res = await apiFetch("/auth/register", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify({ name, email, password }),
     });
 
@@ -316,6 +317,10 @@ export const ShopProvider = ({ children }) => {
       throw new Error(data.message || "Registration failed");
     }
 
+    if (data.token) {
+      setAuthToken(data.token);
+    }
+
     const nextUser = normalizeUser(data.user);
     setUser(nextUser);
     return nextUser;
@@ -323,24 +328,22 @@ export const ShopProvider = ({ children }) => {
 
   const logoutUser = async () => {
     try {
-      await fetch(`${API_BASE_URL}/auth/logout`, {
+      await apiFetch("/auth/logout", {
         method: "POST",
-        credentials: "include",
       });
     } catch (error) {
       console.warn("Logout request failed", error);
     }
 
+    removeAuthToken();
     setUser(null);
     clearCart();
     setWishlist([]);
   };
 
   const updateProfile = async (userData) => {
-    const res = await fetch(`${API_BASE_URL}/users/profile`, {
+    const res = await apiFetch("/users/profile", {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      credentials: "include",
       body: JSON.stringify(userData),
     });
 
